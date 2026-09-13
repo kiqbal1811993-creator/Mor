@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /super-admin/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://morcare.hair/sitemap.xml
