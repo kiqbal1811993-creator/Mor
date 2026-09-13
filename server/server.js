@@ -484,6 +484,16 @@ app.put('/api/chat/sessions/:sessionId/read', verifyAnyAdmin(), async (req, res)
   }
 });
 
+// Delete a chat session (Admin only)
+app.delete('/api/chat/sessions/:sessionId', verifyAnyAdmin(), async (req, res) => {
+  try {
+    await Message.deleteMany({ sessionId: req.params.sessionId });
+    res.json({ success: true, message: 'Chat session deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Mark admin messages as read (by customer)
 app.put('/api/chat/sessions/:sessionId/read-customer', async (req, res) => {
   try {
@@ -540,6 +550,17 @@ app.get('/api/orders', verifyAnyAdmin('orders'), async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete an order (Admin only)
+app.delete('/api/orders/:id', verifyAnyAdmin('orders'), async (req, res) => {
+  try {
+    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
+    if (!deletedOrder) return res.status(404).json({ message: 'Order not found' });
+    res.json({ success: true, message: 'Order deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

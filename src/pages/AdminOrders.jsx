@@ -1,7 +1,7 @@
 import { API_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Package, MessageCircle, ShoppingBag, LogOut, ChevronDown, UserPlus, Star, HelpCircle, Menu, X } from 'lucide-react';
+import { ChevronLeft, Package, MessageCircle, ShoppingBag, LogOut, ChevronDown, UserPlus, Star, HelpCircle, Menu, X, Trash2 } from 'lucide-react';
 
 const statusColors = {
   Pending: { bg: 'rgba(255, 193, 7, 0.15)', color: '#ffc107', border: 'rgba(255, 193, 7, 0.4)' },
@@ -89,6 +89,25 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
     } catch (err) { 
       console.error(err); 
       fetchOrders();
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    try {
+      const res = await fetch(`${API_URL}/orders/` + orderId, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + adminToken }
+      });
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => o._id !== orderId));
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete order');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting order');
     }
   };
 
@@ -274,6 +293,9 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
                               </button>
                             );
                           })}
+                          <button onClick={() => deleteOrder(order._id)} style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(255, 71, 87, 0.4)', background: 'rgba(255, 71, 87, 0.1)', color: '#ff4757', cursor: 'pointer', textAlign: 'left', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
+                            <Trash2 size={16} /> Delete Order
+                          </button>
                         </div>
                       </div>
                     </div>

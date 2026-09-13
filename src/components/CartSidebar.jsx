@@ -1,7 +1,10 @@
 import React from 'react';
 import { ShoppingCart, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CartSidebar = ({ isCartOpen, setIsCartOpen, cartItems, setCartItems, handleUpdateCartQuantity, totalCartPrice }) => {
+  const navigate = useNavigate();
+
   if (!isCartOpen) return null;
 
   return (
@@ -56,7 +59,16 @@ const CartSidebar = ({ isCartOpen, setIsCartOpen, cartItems, setCartItems, handl
               <span>Subtotal:</span>
               <span>Rs. {totalCartPrice}</span>
             </div>
-            <button className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '15px', fontSize: '16px' }}>Proceed to Checkout</button>
+            <button 
+              className="btn-primary" 
+              style={{ width: '100%', justifyContent: 'center', padding: '15px', fontSize: '16px' }}
+              onClick={() => {
+                setIsCartOpen(false);
+                navigate('/checkout');
+              }}
+            >
+              Proceed to Checkout
+            </button>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Send, Search, Check, CheckCheck, Loader } from 'lucide-react';
+import { ChevronLeft, Send, Search, Check, CheckCheck, Loader, Trash2 } from 'lucide-react';
 
 const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
   const navigate = useNavigate();
@@ -166,6 +166,29 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
     }
   };
 
+  const deleteSession = async (sessionId) => {
+    if (!window.confirm('Are you sure you want to delete this chat session?')) return;
+    try {
+      const res = await fetch(`${API_URL}/chat/sessions/` + sessionId, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.sessionId !== sessionId));
+        if (selectedSessionId === sessionId) {
+          setSelectedSessionId(null);
+          setMessages([]);
+        }
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete chat session');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting chat session');
+    }
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -277,7 +300,10 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
                     <ChevronLeft size={20} />
                   </button>
                 )}
-                <h3 style={{ margin: 0 }}>{selectedSessionId}</h3>
+                <h3 style={{ margin: 0, flex: 1 }}>{selectedSessionId}</h3>
+                <button onClick={() => deleteSession(selectedSessionId)} style={{ background: 'rgba(255, 71, 87, 0.1)', border: '1px solid rgba(255, 71, 87, 0.4)', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#ff4757', cursor: 'pointer', fontSize: '13px' }}>
+                  <Trash2 size={16} /> Delete
+                </button>
               </div>
               
               <div className="chat-scroll" style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
