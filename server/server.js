@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
@@ -18,6 +19,8 @@ const loginLimiter = rateLimit({
 });
 
 // Middleware
+// Enable gzip compression for all responses - reduces data transfer by ~80%
+app.use(compression());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -303,6 +306,8 @@ app.get('/api/sub-admin/verify', async (req, res) => {
 // Get all products
 app.get('/api/products', async (req, res) => {
   try {
+    // Cache-Control: tell Vercel CDN to cache for 5 min, revalidate in background
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
     const products = await Product.find().sort({ createdAt: -1 });
     // Map _id to id for frontend compatibility
     const formattedProducts = products.map(p => ({
