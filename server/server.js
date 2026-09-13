@@ -29,9 +29,17 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI)
+if (!MONGODB_URI) {
+  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
+}
+
+// Serverless friendly MongoDB connection
+mongoose.connect(MONGODB_URI || '', {
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of waiting forever
+  socketTimeoutMS: 45000,
+})
   .then(() => console.log('Successfully connected to MongoDB.'))
-  .catch((error) => console.error('MongoDB connection error:', error));
+  .catch((error) => console.error('MongoDB connection error:', error.message));
 
 // Product Schema & Model
 const productSchema = new mongoose.Schema({
