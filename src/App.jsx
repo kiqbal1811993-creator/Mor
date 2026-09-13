@@ -63,12 +63,26 @@ function App() {
   });
 
   const fetchProducts = () => {
-    setIsLoading(true);
+    // Only show full-screen loading if no cached products exist
+    const cached = localStorage.getItem('cachedProducts');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          setIsLoading(false); // Show site immediately with cached data
+        }
+      } catch {}
+    } else {
+      setIsLoading(true);
+    }
+    // Always fetch fresh data in background
     fetch(`${API_URL}/products`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
           setProducts(data);
+          localStorage.setItem('cachedProducts', JSON.stringify(data)); // Cache for next visit
         }
       })
       .catch(err => console.error('Error fetching products:', err))
