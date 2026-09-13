@@ -133,7 +133,7 @@ function App() {
     setIsCartOpen(true);
   };
   
-  const totalCartItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartItems = cartItems.length;
   const totalCartPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   
   return (

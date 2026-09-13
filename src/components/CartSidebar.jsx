@@ -64,7 +64,9 @@ const CartSidebar = ({ isCartOpen, setIsCartOpen, cartItems, setCartItems, handl
               style={{ width: '100%', justifyContent: 'center', padding: '15px', fontSize: '16px' }}
               onClick={() => {
                 setIsCartOpen(false);
-                navigate('/checkout');
+                if (cartItems.length > 0) {
+                  navigate(`/checkout/${cartItems[0].id || cartItems[0]._id}`, { state: { quantity: cartItems[0].quantity } });
+                }
               }}
             >
               Proceed to Checkout
