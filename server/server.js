@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
-const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
@@ -19,8 +18,6 @@ const loginLimiter = rateLimit({
 });
 
 // Middleware
-// Enable gzip compression for all responses - reduces data transfer by ~80%
-app.use(compression());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
