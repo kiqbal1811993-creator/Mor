@@ -1,8 +1,9 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Send, ChevronLeft, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = `${API_URL}`;
 
 const HelplineChat = () => {
   const navigate = useNavigate();

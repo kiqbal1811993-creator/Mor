@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import { X, Send, Maximize2, Minimize2, Check, CheckCheck } from 'lucide-react';
 
@@ -43,7 +44,7 @@ const CustomerChat = ({ isOpen, onClose, product, setChatProduct }) => {
   const fetchMessages = async () => {
     if (!sessionId) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/messages/${sessionId}`);
+      const res = await fetch(`${API_URL}/chat/messages/${sessionId}`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
@@ -60,7 +61,7 @@ const CustomerChat = ({ isOpen, onClose, product, setChatProduct }) => {
       const fetchAndMarkRead = async () => {
         await fetchMessages();
         if (sessionId) {
-          fetch(`http://localhost:5000/api/chat/sessions/${sessionId}/read-customer`, { method: 'PUT' });
+          fetch(`${API_URL}/chat/sessions/${sessionId}/read-customer`, { method: 'PUT' });
         }
       };
 
@@ -92,7 +93,7 @@ const CustomerChat = ({ isOpen, onClose, product, setChatProduct }) => {
     setNewMessage('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/chat/message', {
+      const res = await fetch(`${API_URL}/chat/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

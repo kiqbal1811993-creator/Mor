@@ -1,3 +1,4 @@
+import { API_URL } from './config';
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -63,7 +64,7 @@ function App() {
 
   const fetchProducts = () => {
     setIsLoading(true);
-    fetch('http://localhost:5000/api/products')
+    fetch(`${API_URL}/products`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {

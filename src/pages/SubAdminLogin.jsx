@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 ﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, Shield } from "lucide-react";
@@ -13,7 +14,7 @@ const SubAdminLogin = ({ setSubAdminToken, setSubAdminPermissions }) => {
     e.preventDefault();
     setLoading(true); setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/sub-admin/login", {
+      const res = await fetch(`${API_URL}/sub-admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: pass })

@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Star, Upload, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -20,7 +21,7 @@ const ProductReviews = ({ productId }) => {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/reviews/${productId}`);
+      const res = await fetch(`${API_URL}/reviews/${productId}`);
       if (res.ok) {
         const data = await res.json();
         setReviews(data);
@@ -49,7 +50,7 @@ const ProductReviews = ({ productId }) => {
     
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/reviews', {
+      const res = await fetch(`${API_URL}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, name, rating, text, image })

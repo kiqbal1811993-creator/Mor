@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Package, LogOut, Plus, Trash2, Upload, ShoppingBag, UserPlus, Star, HelpCircle, ArrowLeft, Menu, X } from 'lucide-react';
@@ -42,7 +43,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
       // Sub-admin: verify session every 5s
       const checkSession = async () => {
         try {
-          const r = await fetch('http://localhost:5000/api/sub-admin/verify', {
+          const r = await fetch(`${API_URL}/sub-admin/verify`, {
             headers: { Authorization: 'Bearer ' + adminToken }
           });
           if (!r.ok) {
@@ -63,7 +64,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
 
   const fetchOrdersSilent = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/orders', { headers: { Authorization: 'Bearer ' + adminToken } });
+      const res = await fetch(`${API_URL}/orders`, { headers: { Authorization: 'Bearer ' + adminToken } });
       if (res.ok) {
         const data = await res.json();
         if (orderCountRef.current !== null && data.length > orderCountRef.current) {
@@ -83,7 +84,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await fetch(`http://localhost:5000/api/products/${id}`, { 
+        await fetch(`${API_URL}/products/${id}`, { 
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${adminToken}` }
         });
@@ -102,7 +103,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         images: editingProduct.images.filter(img => img.trim() !== '')
       };
 
-      await fetch(`http://localhost:5000/api/products/${editingProduct.id}`, {
+      await fetch(`${API_URL}/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         images: newProduct.images.filter(img => img.trim() !== '')
       };
 
-      await fetch(`http://localhost:5000/api/products`, {
+      await fetch(`${API_URL}/products`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -1,8 +1,9 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import { Search, Package, MapPin, Truck, CheckCircle, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = `${API_URL}`;
 
 const statusSteps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
 

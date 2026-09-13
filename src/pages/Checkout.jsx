@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, ChevronLeft, ShoppingBag, Truck } from 'lucide-react';
@@ -44,7 +45,7 @@ const Checkout = ({ products }) => {
     setErrors({});
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer: { name: form.name, email: form.email, phone: form.phone, city: form.city, address: form.address }, product: { id: product._id || product.id, title: product.title, price: product.price, image: mainImage }, quantity, totalAmount: total })

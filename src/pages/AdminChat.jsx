@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Send, Search, Check, CheckCheck, Loader } from 'lucide-react';
@@ -60,7 +61,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
     if (isSubAdmin) {
       const checkSession = async () => {
         try {
-          const r = await fetch('http://localhost:5000/api/sub-admin/verify', {
+          const r = await fetch(`${API_URL}/sub-admin/verify`, {
             headers: { Authorization: 'Bearer ' + adminToken }
           });
           if (!r.ok) {
@@ -80,7 +81,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/chat/sessions', {
+      const res = await fetch(`${API_URL}/chat/sessions`, {
         headers: { Authorization: `Bearer ${adminToken}` }
       });
       if (res.ok) {
@@ -95,7 +96,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
   const fetchMessages = async (sessionId, silent = false) => {
     if (!silent) setIsChatLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/messages/${sessionId}`);
+      const res = await fetch(`${API_URL}/chat/messages/${sessionId}`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
@@ -121,7 +122,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
       const fetchAndMarkRead = async (silent) => {
         await fetchMessages(selectedSessionId, silent);
         // Mark as read
-        fetch(`http://localhost:5000/api/chat/sessions/${selectedSessionId}/read`, {
+        fetch(`${API_URL}/chat/sessions/${selectedSessionId}/read`, {
           method: 'PUT',
           headers: { Authorization: `Bearer ${adminToken}` }
         }).then(() => fetchSessions());
@@ -148,7 +149,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
     setReplyText('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/chat/message', {
+      const res = await fetch(`${API_URL}/chat/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

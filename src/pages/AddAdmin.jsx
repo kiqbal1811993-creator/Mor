@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlus, Package, ShoppingBag, MessageCircle, HelpCircle, LogOut, Trash2, Copy, Check, Menu, X } from "lucide-react";
@@ -39,7 +40,7 @@ const AddAdmin = ({ adminToken, setAdminToken }) => {
 
   const fetchAdmins = async () => {
     try {
-      const r = await fetch("http://localhost:5000/api/super-admin/subadmins", {
+      const r = await fetch(`${API_URL}/super-admin/subadmins`, {
         headers: { Authorization: "Bearer " + adminToken }
       });
       if (r.ok) setAdmins(await r.json());
@@ -52,7 +53,7 @@ const AddAdmin = ({ adminToken, setAdminToken }) => {
     if (!perms.length) { setError("Please select at least one permission."); return; }
     setError(""); setBusy(true);
     const email = generateEmail(), password = generatePassword();
-    const r = await fetch("http://localhost:5000/api/super-admin/create-subadmin", {
+    const r = await fetch(`${API_URL}/super-admin/create-subadmin`, {
       method:"POST",
       headers:{ "Content-Type":"application/json", Authorization:"Bearer "+adminToken },
       body: JSON.stringify({ email, password, permissions: perms })
@@ -65,7 +66,7 @@ const AddAdmin = ({ adminToken, setAdminToken }) => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this admin?")) return;
-    await fetch(`http://localhost:5000/api/super-admin/subadmins/${id}`, {
+    await fetch(`${API_URL}/super-admin/subadmins/${id}`, {
       method:"DELETE", headers:{ Authorization:"Bearer "+adminToken }
     });
     fetchAdmins();

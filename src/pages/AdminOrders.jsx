@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Package, MessageCircle, ShoppingBag, LogOut, ChevronDown, UserPlus, Star, HelpCircle, Menu, X } from 'lucide-react';
@@ -31,7 +32,7 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
   const fetchOrders = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/orders', { headers: { Authorization: 'Bearer ' + adminToken } });
+      const res = await fetch(`${API_URL}/orders`, { headers: { Authorization: 'Bearer ' + adminToken } });
       if (res.ok) {
         const data = await res.json();
         if (orderCountRef.current !== null && data.length > orderCountRef.current) {
@@ -54,7 +55,7 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
     if (isSubAdmin) {
       const checkSession = async () => {
         try {
-          const r = await fetch('http://localhost:5000/api/sub-admin/verify', {
+          const r = await fetch(`${API_URL}/sub-admin/verify`, {
             headers: { Authorization: 'Bearer ' + adminToken }
           });
           if (!r.ok) {
@@ -79,7 +80,7 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
     // Optimistic update
     setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status } : o));
     try {
-      const res = await fetch('http://localhost:5000/api/orders/' + orderId + '/status', {
+      const res = await fetch(`${API_URL}/orders/` + orderId + '/status', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken },
         body: JSON.stringify({ status })
