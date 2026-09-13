@@ -26,20 +26,36 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// MongoDB Connection
+// Serverless friendly MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
+let cachedDb = null;
 
-if (!MONGODB_URI) {
-  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
-}
+const connectDB = async () => {
+  if (cachedDb) return cachedDb;
+  if (!MONGODB_URI) throw new Error('MONGODB_URI is missing.');
 
-// Serverless friendly MongoDB connection
-mongoose.connect(MONGODB_URI || '', {
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of waiting forever
-  socketTimeoutMS: 45000,
-})
-  .then(() => console.log('Successfully connected to MongoDB.'))
-  .catch((error) => console.error('MongoDB connection error:', error.message));
+  cachedDb = mongoose.connect(MONGODB_URI, {
+    bufferCommands: false, // Fail fast if not connected
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  }).then(m => m);
+  
+  return await cachedDb;
+};
+
+// Middleware to ensure DB connection on every request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    res.status(500).json({ 
+      message: 'Database connection failed. Please ensure your Vercel IP is whitelisted (0.0.0.0/0) in MongoDB Atlas Network Access and MONGODB_URI is correct.',
+      error: error.message 
+    });
+  }
+});
 
 // Product Schema & Model
 const productSchema = new mongoose.Schema({
