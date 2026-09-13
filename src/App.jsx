@@ -152,7 +152,7 @@ function App() {
 
       <div className="container">
         <Routes>
-          <Route path="/" element={<Home products={products} handleAddToCart={handleAddToCart} onOpenChat={(p) => { setChatProduct(p); setIsChatOpen(true); }} navigate={useNavigate()} />} />
+          <Route path="/" element={<Home products={products} handleAddToCart={handleAddToCart} onOpenChat={(p) => { setChatProduct(p); setIsChatOpen(true); }} />} />
           <Route path="/shop" element={<Shop products={products} handleAddToCart={handleAddToCart} onOpenChat={(p) => { setChatProduct(p); setIsChatOpen(true); }} />} />
           <Route path="/super-admin" element={<AdminLogin setAdminToken={setAdminToken} />} />
         </Routes>
