@@ -62,7 +62,7 @@ const HelplineChat = () => {
     };
 
     fetchAndMarkRead();
-    const interval = setInterval(fetchAndMarkRead, 5000); // reduced from 3s to 5s
+    const interval = setInterval(fetchAndMarkRead, 15000); // reduced from 5s to 15s
     return () => clearInterval(interval);
   }, [sessionId]);
 

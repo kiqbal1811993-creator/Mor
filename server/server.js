@@ -433,7 +433,7 @@ app.post('/api/chat/message', async (req, res) => {
 // Get messages for a specific session
 app.get('/api/chat/messages/:sessionId', async (req, res) => {
   try {
-    const messages = await Message.find({ sessionId: req.params.sessionId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ sessionId: req.params.sessionId }).select('-product.image').sort({ createdAt: 1 });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -548,7 +548,7 @@ app.post('/api/orders', async (req, res) => {
 // Get all orders (Admin only)
 app.get('/api/orders', verifyAnyAdmin('orders'), async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().select('-product.image').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });

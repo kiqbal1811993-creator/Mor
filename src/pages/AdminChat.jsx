@@ -74,7 +74,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
         } catch {}
       };
       checkSession();
-      const interval = setInterval(checkSession, 60000); // reduced from 5s to 60s
+      const interval = setInterval(checkSession, 120000); // reduced from 60s to 120s
       return () => clearInterval(interval);
     }
   }, [adminToken, navigate, isSubAdmin]);
@@ -111,7 +111,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
   useEffect(() => {
     if (adminToken) {
       fetchSessions();
-      const interval = setInterval(fetchSessions, 10000); // reduced from 5s to 10s
+      const interval = setInterval(fetchSessions, 30000); // reduced from 10s to 30s
       return () => clearInterval(interval);
     }
   }, [adminToken]);
@@ -129,7 +129,7 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
       };
 
       fetchAndMarkRead(false);
-      const interval = setInterval(() => fetchAndMarkRead(true), 5000); // reduced from 3s to 5s
+      const interval = setInterval(() => fetchAndMarkRead(true), 15000); // reduced from 5s to 15s
       return () => clearInterval(interval);
     }
   }, [selectedSessionId, adminToken]);

@@ -37,7 +37,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
     }
     if (!isSubAdmin) {
       fetchOrdersSilent();
-      intervalRef.current = setInterval(() => fetchOrdersSilent(), 30000); // reduced from 2s to 30s
+      intervalRef.current = setInterval(() => fetchOrdersSilent(), 60000); // reduced from 30s to 60s
       return () => clearInterval(intervalRef.current);
     } else {
       // Sub-admin: verify session every 5s
@@ -57,7 +57,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         } catch {}
       };
       checkSession();
-      intervalRef.current = setInterval(checkSession, 60000); // reduced from 5s to 60s
+      intervalRef.current = setInterval(checkSession, 120000); // reduced from 60s to 120s
       return () => clearInterval(intervalRef.current);
     }
   }, [adminToken, navigate, isSubAdmin]);

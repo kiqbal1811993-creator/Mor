@@ -49,7 +49,7 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
   useEffect(() => {
     if (!adminToken) { navigate(isSubAdmin ? '/admin' : '/super-admin'); return; }
     fetchOrders();
-    intervalRef.current = setInterval(() => fetchOrders(true), 15000); // reduced from 5s to 15s
+    intervalRef.current = setInterval(() => fetchOrders(true), 60000); // reduced from 15s to 60s
     // Sub-admin: also verify session every 5s
     let sessionInterval;
     if (isSubAdmin) {
@@ -68,7 +68,7 @@ const AdminOrders = ({ adminToken, setAdminToken, isSubAdmin, permissions = [] }
           }
         } catch {}
       };
-      sessionInterval = setInterval(checkSession, 60000); // reduced from 5s to 60s
+      sessionInterval = setInterval(checkSession, 120000); // reduced from 60s to 120s
     }
     return () => {
       clearInterval(intervalRef.current);
