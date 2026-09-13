@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+ï»¿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, Shield } from "lucide-react";
 
@@ -42,7 +42,7 @@ const SubAdminLogin = ({ setSubAdminToken, setSubAdminPermissions }) => {
           </div>
           <div style={{ textAlign:"center" }}>
             <h1 style={{ margin:0, fontSize:"26px", fontWeight:"800" }}>Admin Login</h1>
-            <p style={{ margin:"6px 0 0", color:"var(--text-muted)", fontSize:"14px" }}>MOR Natural Care — Admin Portal</p>
+            <p style={{ margin:"6px 0 0", color:"var(--text-muted)", fontSize:"14px" }}>MOR Natural Care â€” Admin Portal</p>
           </div>
         </div>
 
@@ -65,7 +65,7 @@ const SubAdminLogin = ({ setSubAdminToken, setSubAdminPermissions }) => {
             <label style={{ display:"block", marginBottom:"8px", fontSize:"13px", color:"var(--text-muted)", fontWeight:"600", letterSpacing:"0.5px", textTransform:"uppercase" }}>Password</label>
             <input
               type="password" required value={pass} onChange={e=>setPass(e.target.value)}
-              placeholder="••••••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               style={{ width:"100%", padding:"13px 16px", borderRadius:"10px", border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", outline:"none", fontSize:"15px", boxSizing:"border-box" }}
             />
           </div>
