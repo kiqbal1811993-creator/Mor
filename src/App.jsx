@@ -155,6 +155,7 @@ function App() {
           <Route path="/" element={<Home products={products} handleAddToCart={handleAddToCart} onOpenChat={(p) => { setChatProduct(p); setIsChatOpen(true); }} />} />
           <Route path="/shop" element={<Shop products={products} handleAddToCart={handleAddToCart} onOpenChat={(p) => { setChatProduct(p); setIsChatOpen(true); }} />} />
           <Route path="/super-admin" element={<AdminLogin setAdminToken={setAdminToken} />} />
+          <Route path="*" element={null} />
         </Routes>
       </div>
 
@@ -205,6 +206,7 @@ function App() {
             permissions={subAdminPermissions}
           />
         } />
+        <Route path="*" element={null} />
       </Routes>
 
       <Routes>
