@@ -3,4 +3,4 @@ Disallow: /super-admin/
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://morcare.hair/sitemap.xml
+Sitemap: https://multirecover.com/sitemap.xml
