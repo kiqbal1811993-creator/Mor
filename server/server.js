@@ -64,6 +64,29 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong', env: { hasMongo: !!process.env.MONGODB_URI } });
 });
 
+// Endpoint to test database connection and show exact error
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      return res.status(500).json({ status: 'error', message: 'MONGODB_URI is empty' });
+    }
+    await mongoose.connect(uri, {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
+    });
+    res.json({ status: 'success', message: 'Connected to MongoDB successfully!' });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Failed to connect to MongoDB', 
+      errorName: error.name,
+      errorMessage: error.message,
+      errorCode: error.code
+    });
+  }
+});
+
 // Middleware to ensure DB connection on every request
 app.use(async (req, res, next) => {
   try {
