@@ -379,7 +379,7 @@ app.get('/api/products', async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store');
     // Use limit to avoid memory issues on Atlas M0 free tier
-    const products = await Product.find().sort({ createdAt: -1 }).limit(100).lean();
+    const products = await Product.find().limit(100).lean();
     const formattedProducts = products.map(p => ({
       id: p._id.toString(),
       title: p.title,
@@ -515,7 +515,7 @@ app.post('/api/chat/message', async (req, res) => {
 // Get messages for a specific session
 app.get('/api/chat/messages/:sessionId', async (req, res) => {
   try {
-    const messages = await Message.find({ sessionId: req.params.sessionId }).select('-product.image').sort({ createdAt: 1 });
+    const messages = await Message.find({ sessionId: req.params.sessionId }).select('-product.image').limit(200).lean();
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -630,7 +630,7 @@ app.post('/api/orders', async (req, res) => {
 // Get all orders (Admin only)
 app.get('/api/orders', verifyAnyAdmin('orders'), async (req, res) => {
   try {
-    const orders = await Order.find().select('-product.image').sort({ createdAt: -1 });
+    const orders = await Order.find().select('-product.image').limit(500).lean();
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
