@@ -15,12 +15,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mor_super_secret_key_2026'; // Ple
 // Vercel proxy support (required for rate-limiting to work properly)
 app.set('trust proxy', 1);
 
-// Security Middleware
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login requests per `window` (here, per 15 minutes)
-  message: { message: 'Too many login attempts from this IP, please try again after 15 minutes' }
-});
+// Security Middleware - Rate Limiter disabled (Vercel proxy IP issue)
+// const loginLimiter = rateLimit({ ... });
 
 // Middleware
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
@@ -236,7 +232,7 @@ const notifySubscribers = async (product) => {
 };
 
 // Super Admin Login
-app.post('/api/admin/login', loginLimiter, (req, res) => {
+app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
   if (email === process.env.SUPERADMIN_EMAIL && password === process.env.SUPERADMIN_PASS) {
     const token = jwt.sign({ role: 'superadmin' }, JWT_SECRET, { expiresIn: '1d' });
@@ -247,7 +243,7 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
 });
 
 // Sub-Admin Login
-app.post('/api/sub-admin/login', loginLimiter, async (req, res) => {
+app.post('/api/sub-admin/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const subAdmin = await SubAdmin.findOne({ email: email.toLowerCase() });
