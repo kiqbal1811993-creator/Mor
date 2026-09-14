@@ -2,6 +2,7 @@ import { API_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Package, LogOut, Plus, Trash2, Upload, ShoppingBag, UserPlus, Star, HelpCircle, ArrowLeft, Menu, X } from 'lucide-react';
+import AdminSidebar from '../components/AdminSidebar';
 
 const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, isSubAdmin, permissions = [] }) => {
   const [editingProduct, setEditingProduct] = useState(null);
@@ -344,46 +345,15 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
       <style>{`@keyframes slideProgress { from { width: 0% } to { width: 100% } }`}</style>
       
       {/* Sidebar */}
-      <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
-        <h2 style={{ margin: '0 0 40px 0', fontSize: '22px', textAlign: 'center' }}>{isSubAdmin ? 'Admin Panel' : 'Super Admin'}</h2>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 }}>
-          {!isSubAdmin && (
-            <button onClick={() => navigate('/super-admin/add-admin')} style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <UserPlus size={20} /> Add Admin
-            </button>
-          )}
-
-          {(!isSubAdmin || permissions.includes('products')) && (
-            <button style={{ background: 'var(--primary)', color: 'black', border: 'none', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
-              <Package size={20} /> Products
-            </button>
-          )}
-          
-          {(!isSubAdmin || permissions.includes('orders')) && (
-            <button onClick={() => navigate(isSubAdmin ? '/admin/orders' : '/super-admin/orders')} style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <ShoppingBag size={20} /> Orders
-            </button>
-          )}
-
-          {(!isSubAdmin || permissions.includes('chat')) && (
-            <button onClick={() => navigate(isSubAdmin ? '/admin/chat' : '/super-admin/chat')} style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <MessageCircle size={20} /> Chat
-            </button>
-          )}
-
-          {(!isSubAdmin || permissions.includes('helpline')) && (
-            <button onClick={() => navigate(isSubAdmin ? '/admin/chat?filter=helpline' : '/super-admin/chat?filter=helpline')} style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <HelpCircle size={20} /> Help Chat
-            </button>
-          )}
-        </div>
-        
-        <button onClick={handleAdminLogout} style={{ background: 'rgba(255, 71, 87, 0.1)', color: '#ff4757', border: '1px solid rgba(255, 71, 87, 0.3)', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 71, 87, 0.2)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 71, 87, 0.1)'}>
-          <LogOut size={20} /> Logout
-        </button>
-      </div>
-      <div className="admin-sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
+      <AdminSidebar
+        activePage="products"
+        isSubAdmin={isSubAdmin}
+        permissions={permissions}
+        adminToken={adminToken}
+        setAdminToken={setAdminToken}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+      />
 
       {/* Main Content */}
       <div className="admin-main">

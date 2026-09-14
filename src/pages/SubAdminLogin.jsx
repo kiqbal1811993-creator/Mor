@@ -57,8 +57,8 @@ const SubAdminLogin = ({ setSubAdminToken, setSubAdminPermissions }) => {
           <div>
             <label style={{ display:"block", marginBottom:"8px", fontSize:"13px", color:"var(--text-muted)", fontWeight:"600", letterSpacing:"0.5px", textTransform:"uppercase" }}>Email</label>
             <input
-              type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-              placeholder="admin@morcare.pk"
+              type="text" required value={email} onChange={e=>setEmail(e.target.value)}
+              placeholder="admin@morcare.pk or username"
               style={{ width:"100%", padding:"13px 16px", borderRadius:"10px", border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", outline:"none", fontSize:"15px", boxSizing:"border-box" }}
             />
           </div>

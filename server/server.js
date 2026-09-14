@@ -193,6 +193,13 @@ const subAdminSchema = new mongoose.Schema({
 }, { timestamps: true });
 const SubAdmin = mongoose.model('SubAdmin', subAdminSchema);
 
+// SuperAdmin Schema & Model
+const superAdminSchema = new mongoose.Schema({
+  email: { type: String, required: true, lowercase: true, trim: true },
+  password: { type: String, required: true }
+}, { timestamps: true });
+const SuperAdmin = mongoose.model('SuperAdmin', superAdminSchema);
+
 // Nodemailer transporter (Gmail SMTP)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -235,14 +242,72 @@ const notifySubscribers = async (product) => {
   }
 };
 
+// Helper to dynamically read SuperAdmin env credentials directly from .env file or process.env
+const getSuperAdminEnv = () => {
+  let email = process.env.SUPERADMIN_EMAIL || '';
+  let pass = process.env.SUPERADMIN_PASS || '';
+  try {
+    const fs = require('fs');
+    const envPath = path.join(__dirname, '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const emailMatch = content.match(/^SUPERADMIN_EMAIL=(.*)$/m);
+      const passMatch = content.match(/^SUPERADMIN_PASS=(.*)$/m);
+      if (emailMatch && emailMatch[1]) email = emailMatch[1].trim();
+      if (passMatch && passMatch[1]) pass = passMatch[1].trim();
+    }
+  } catch (e) {}
+  return { email, pass };
+};
+
 // Super Admin Login
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   const { email, password } = req.body;
-  if (email === process.env.SUPERADMIN_EMAIL && password === process.env.SUPERADMIN_PASS) {
-    const token = jwt.sign({ role: 'superadmin' }, JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token, role: 'superadmin' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
+  try {
+    const inputEmail = (email || '').toLowerCase().trim();
+    const inputPass = password || '';
+
+    const env = getSuperAdminEnv();
+    const envEmail = env.email.toLowerCase().trim();
+    const envPass = env.pass;
+
+    let superAdmin = await SuperAdmin.findOne({});
+
+    const isEnvMatch = (inputEmail === envEmail && inputPass === envPass);
+
+    let isDbMatch = false;
+    if (superAdmin) {
+      const isEmailMatch = (inputEmail === superAdmin.email.toLowerCase());
+      const isPassMatch = await bcrypt.compare(inputPass, superAdmin.password);
+      isDbMatch = isEmailMatch && isPassMatch;
+    }
+
+    if (isEnvMatch || isDbMatch) {
+      // Sync DB record with latest env credentials if env matched or DB was outdated
+      if (!superAdmin || isEnvMatch) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(envPass || inputPass, salt);
+        if (superAdmin) {
+          superAdmin.email = envEmail || inputEmail;
+          superAdmin.password = hashedPassword;
+          await superAdmin.save();
+        } else {
+          superAdmin = new SuperAdmin({ email: envEmail || inputEmail, password: hashedPassword });
+          await superAdmin.save();
+        }
+      }
+
+      process.env.SUPERADMIN_EMAIL = envEmail || inputEmail;
+      process.env.SUPERADMIN_PASS = envPass || inputPass;
+
+      const token = jwt.sign({ role: 'superadmin' }, JWT_SECRET, { expiresIn: '1d' });
+      return res.json({ token, role: 'superadmin' });
+    } else {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+  } catch (err) {
+    console.error('Superadmin login error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -369,6 +434,178 @@ app.get('/api/sub-admin/verify', async (req, res) => {
     res.json({ valid: true, permissions: subAdmin.permissions });
   } catch (err) {
     res.status(401).json({ valid: false });
+  }
+});
+
+// Admin / SubAdmin Profile
+app.get('/api/admin/profile', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'Access denied.' });
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role === 'superadmin') {
+      const superAdmin = await SuperAdmin.findOne({});
+      const email = superAdmin ? superAdmin.email : (process.env.SUPERADMIN_EMAIL || '');
+      return res.json({ role: 'superadmin', email });
+    } else if (decoded.role === 'subadmin') {
+      const subAdmin = await SubAdmin.findById(decoded.subAdminId);
+      if (!subAdmin) return res.status(404).json({ message: 'Subadmin not found' });
+      return res.json({ role: 'subadmin', email: subAdmin.email, permissions: subAdmin.permissions });
+    } else {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+// Super Admin: Change Email or Password
+app.put('/api/super-admin/change-credentials', verifyAdmin, async (req, res) => {
+  const { currentPassword, newEmail, newPassword } = req.body;
+  
+  if (!currentPassword) {
+    return res.status(400).json({ message: 'Current password is required.' });
+  }
+  
+  if (!newEmail && !newPassword) {
+    return res.status(400).json({ message: 'Please provide a new email or new password.' });
+  }
+  
+  try {
+    let superAdmin = await SuperAdmin.findOne({});
+    let isValidCurrent = false;
+
+    if (superAdmin) {
+      isValidCurrent = await bcrypt.compare(currentPassword, superAdmin.password);
+      if (!isValidCurrent && currentPassword === process.env.SUPERADMIN_PASS) {
+        isValidCurrent = true;
+      }
+    } else {
+      if (currentPassword === process.env.SUPERADMIN_PASS) {
+        isValidCurrent = true;
+      }
+    }
+
+    if (!isValidCurrent) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    let updatedEmail = newEmail ? newEmail.toLowerCase().trim() : (superAdmin ? superAdmin.email : (process.env.SUPERADMIN_EMAIL || ''));
+    let updatedPasswordHash = superAdmin ? superAdmin.password : null;
+
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      updatedPasswordHash = await bcrypt.hash(newPassword, salt);
+    }
+
+    if (superAdmin) {
+      superAdmin.email = updatedEmail;
+      if (newPassword) superAdmin.password = updatedPasswordHash;
+      await superAdmin.save();
+    } else {
+      const defaultPassHash = updatedPasswordHash || await bcrypt.hash(process.env.SUPERADMIN_PASS || 'defaultPass', 10);
+      superAdmin = new SuperAdmin({
+        email: updatedEmail,
+        password: defaultPassHash
+      });
+      await superAdmin.save();
+    }
+
+    process.env.SUPERADMIN_EMAIL = updatedEmail;
+    if (newPassword) {
+      process.env.SUPERADMIN_PASS = newPassword;
+    }
+
+    try {
+      const fs = require('fs');
+      const envPath = path.join(__dirname, '.env');
+      if (fs.existsSync(envPath)) {
+        let envContent = fs.readFileSync(envPath, 'utf8');
+        if (envContent.includes('SUPERADMIN_EMAIL=')) {
+          envContent = envContent.replace(/SUPERADMIN_EMAIL=.*/g, `SUPERADMIN_EMAIL=${updatedEmail}`);
+        } else {
+          envContent += `\nSUPERADMIN_EMAIL=${updatedEmail}`;
+        }
+        if (newPassword) {
+          if (envContent.includes('SUPERADMIN_PASS=')) {
+            envContent = envContent.replace(/SUPERADMIN_PASS=.*/g, `SUPERADMIN_PASS=${newPassword}`);
+          } else {
+            envContent += `\nSUPERADMIN_PASS=${newPassword}`;
+          }
+        }
+        fs.writeFileSync(envPath, envContent, 'utf8');
+      }
+    } catch (e) {
+      console.warn('Could not rewrite .env file:', e.message);
+    }
+
+    res.json({ success: true, message: 'Super admin credentials updated successfully.', email: updatedEmail });
+  } catch (err) {
+    console.error('Superadmin change credentials error:', err);
+    res.status(500).json({ message: 'Failed to update credentials: ' + err.message });
+  }
+});
+
+// Sub-Admin: Change Email or Password
+app.put('/api/sub-admin/change-credentials', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'Access denied.' });
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'subadmin') {
+      return res.status(403).json({ message: 'Unauthorized.' });
+    }
+
+    const { currentPassword, newEmail, newPassword } = req.body;
+    if (!currentPassword) {
+      return res.status(400).json({ message: 'Current password is required.' });
+    }
+    if (!newEmail && !newPassword) {
+      return res.status(400).json({ message: 'Please provide a new email or new password.' });
+    }
+
+    const subAdmin = await SubAdmin.findById(decoded.subAdminId);
+    if (!subAdmin) {
+      return res.status(404).json({ message: 'Admin account not found.' });
+    }
+
+    let isMatch = await bcrypt.compare(currentPassword, subAdmin.password);
+    if (!isMatch && subAdmin.password === currentPassword) {
+      isMatch = true;
+    }
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    if (newEmail && newEmail.toLowerCase().trim() !== subAdmin.email) {
+      const existing = await SubAdmin.findOne({ email: newEmail.toLowerCase().trim() });
+      if (existing) {
+        return res.status(400).json({ message: 'An admin with this email already exists.' });
+      }
+      subAdmin.email = newEmail.toLowerCase().trim();
+    }
+
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      subAdmin.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    await subAdmin.save();
+    res.json({ success: true, message: 'Credentials updated successfully.', email: subAdmin.email });
+  } catch (err) {
+    console.error('Subadmin change credentials error:', err);
+    res.status(500).json({ message: 'Failed to update credentials: ' + err.message });
   }
 });
 

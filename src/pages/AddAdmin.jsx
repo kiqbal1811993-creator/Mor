@@ -2,6 +2,7 @@ import { API_URL } from '../config';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlus, Package, ShoppingBag, MessageCircle, HelpCircle, LogOut, Trash2, Copy, Check, Menu, X } from "lucide-react";
+import AdminSidebar from '../components/AdminSidebar';
 
 const PERMISSIONS = [
   { key: "products", label: "Products",  icon: Package,        desc: "Add, edit & delete products" },
@@ -110,23 +111,15 @@ const AddAdmin = ({ adminToken, setAdminToken }) => {
       </button>
 
       {/* Sidebar */}
-      <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
-        <h2 style={{ margin:"0 0 40px 0", fontSize:"22px", textAlign:"center" }}>Super Admin</h2>
-        <div style={{ display:"flex", flexDirection:"column", gap:"15px", flex:1 }}>
-          <SideBtn label="Add Admin"  Icon={UserPlus}      onClick={null}                                            active={true}  />
-          <SideBtn label="Products"   Icon={Package}       onClick={() => navigate("/super-admin/dashboard")}        active={false} />
-          <SideBtn label="Orders"     Icon={ShoppingBag}   onClick={() => navigate("/super-admin/orders")}           active={false} />
-          <SideBtn label="Chat"       Icon={MessageCircle} onClick={() => navigate("/super-admin/chat")}             active={false} />
-          <SideBtn label="Help Chat"  Icon={HelpCircle}    onClick={() => navigate("/super-admin/chat?filter=helpline")} active={false} />
-        </div>
-        <button onClick={() => { setAdminToken(null); navigate("/super-admin"); }}
-          style={{ background:"rgba(255,71,87,0.1)", color:"#ff4757", border:"1px solid rgba(255,71,87,0.3)", padding:"12px 15px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", gap:"10px" }}
-          onMouseEnter={e=>e.currentTarget.style.background="rgba(255,71,87,0.2)"}
-          onMouseLeave={e=>e.currentTarget.style.background="rgba(255,71,87,0.1)"}>
-          <LogOut size={20}/> Logout
-        </button>
-      </div>
-      <div className="admin-sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
+      <AdminSidebar
+        activePage="add-admin"
+        isSubAdmin={false}
+        permissions={[]}
+        adminToken={adminToken}
+        setAdminToken={setAdminToken}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+      />
 
       {/* Main */}
       <div className="admin-main">
