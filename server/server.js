@@ -92,8 +92,18 @@ app.use(async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Database connection failed:', error.message);
+    if (req.path === '/api/products') {
+      return res.json([{ 
+        id: 'db-error', 
+        title: 'DB MIDDLEWARE ERROR: ' + error.message, 
+        price: 0, 
+        actualPrice: 0, 
+        images: [''], 
+        description: error.stack 
+      }]);
+    }
     res.status(500).json({ 
-      message: 'Database connection failed. Please ensure your Vercel IP is whitelisted (0.0.0.0/0) in MongoDB Atlas Network Access and MONGODB_URI is correct.',
+      message: 'Database connection failed',
       error: error.message 
     });
   }
@@ -376,7 +386,14 @@ app.get('/api/products', async (req, res) => {
     }));
     res.json(formattedProducts);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json([{ 
+      id: 'route-error', 
+      title: 'PRODUCTS ROUTE ERROR: ' + error.message, 
+      price: 0, 
+      actualPrice: 0, 
+      images: [''], 
+      description: error.stack 
+    }]);
   }
 });
 
