@@ -28,18 +28,7 @@ const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .map(o => o.trim());
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. server-to-server, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.some(o => origin.startsWith(o))) {
-      return callback(null, true);
-    }
-    // Also allow any vercel.app subdomain (for preview deployments)
-    if (origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins for the API to prevent CORS 500 errors
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
