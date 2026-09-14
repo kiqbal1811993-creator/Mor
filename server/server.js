@@ -18,8 +18,23 @@ const loginLimiter = rateLimit({
 });
 
 // Middleware
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. server-to-server, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
+    }
+    // Also allow any vercel.app subdomain (for preview deployments)
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -319,8 +334,8 @@ app.get('/api/sub-admin/verify', async (req, res) => {
 // Get all products
 app.get('/api/products', async (req, res) => {
   try {
-    // Cache-Control: tell Vercel CDN to cache for 5 min, revalidate in background
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+    // No CDN caching — always serve fresh data so admin changes reflect immediately
+    res.setHeader('Cache-Control', 'no-store');
     const products = await Product.find().sort({ createdAt: -1 });
     // Map _id to id for frontend compatibility
     const formattedProducts = products.map(p => ({

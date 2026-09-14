@@ -84,13 +84,19 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await fetch(`${API_URL}/products/${id}`, { 
+        const res = await fetch(`${API_URL}/products/${id}`, { 
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${adminToken}` }
         });
-        fetchProducts();
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert('Delete failed: ' + (err.message || res.status));
+          return;
+        }
+        fetchProducts(true);
       } catch (err) {
         console.error('Failed to delete product', err);
+        alert('Network error: Could not delete product.');
       }
     }
   };
@@ -103,7 +109,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         images: editingProduct.images.filter(img => img.trim() !== '')
       };
 
-      await fetch(`${API_URL}/products/${editingProduct.id}`, {
+      const res = await fetch(`${API_URL}/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -111,10 +117,16 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         },
         body: JSON.stringify(cleanedProduct)
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert('Update failed: ' + (err.message || res.status));
+        return;
+      }
       setEditingProduct(null);
-      fetchProducts();
+      fetchProducts(true);
     } catch (err) {
       console.error('Failed to update product', err);
+      alert('Network error: Could not update product.');
     }
   };
 
@@ -126,7 +138,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         images: newProduct.images.filter(img => img.trim() !== '')
       };
 
-      await fetch(`${API_URL}/products`, {
+      const res = await fetch(`${API_URL}/products`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -134,6 +146,11 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         },
         body: JSON.stringify(cleanedProduct)
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert('Add failed: ' + (err.message || res.status));
+        return;
+      }
       setAddingProduct(false);
       setNewProduct({
         title: '',
@@ -143,9 +160,10 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         video: '',
         description: ''
       });
-      fetchProducts();
+      fetchProducts(true);
     } catch (err) {
       console.error('Failed to add product', err);
+      alert('Network error: Could not add product.');
     }
   };
 

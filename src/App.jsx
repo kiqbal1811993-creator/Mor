@@ -62,10 +62,14 @@ function App() {
     try { return JSON.parse(sessionStorage.getItem('subAdminPermissions') || '[]'); } catch { return []; }
   });
 
-  const fetchProducts = () => {
+  const fetchProducts = (forceFresh = false) => {
+    // If forceFresh (after admin add/edit/delete), clear cache first
+    if (forceFresh) {
+      localStorage.removeItem('cachedProducts');
+    }
     // Only show full-screen loading if no cached products exist
     const cached = localStorage.getItem('cachedProducts');
-    if (cached) {
+    if (cached && !forceFresh) {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -77,12 +81,14 @@ function App() {
       setIsLoading(true);
     }
     // Always fetch fresh data in background
-    fetch(`${API_URL}/products`)
+    fetch(`${API_URL}/products?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
           setProducts(data);
-          localStorage.setItem('cachedProducts', JSON.stringify(data)); // Cache for next visit
+          if (!forceFresh) {
+            localStorage.setItem('cachedProducts', JSON.stringify(data)); // Cache for next visit
+          }
         }
       })
       .catch(err => console.error('Error fetching products:', err))
