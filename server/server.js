@@ -36,25 +36,31 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serverless friendly MongoDB Connection
-let cachedPromise = null;
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
-    return;
+  if (cached.conn) {
+    return cached.conn;
   }
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error('MONGODB_URI is missing. Please set it in Vercel Environment Variables.');
 
-  if (!cachedPromise) {
-    cachedPromise = mongoose.connect(uri, {
-      bufferCommands: false, // Fail fast if not connected
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(uri, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
+    }).then((mongoose) => {
+      return mongoose;
     }).catch(err => {
-      cachedPromise = null;
+      cached.promise = null;
       throw err;
     });
   }
-  await cachedPromise;
+  cached.conn = await cached.promise;
+  return cached.conn;
 };
 
 // Simple ping endpoint to check if API is alive (without DB connection)
@@ -685,3 +691,14 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
 }
 
 module.exports = app;
+
+// Global Error Handler to expose hidden 500 errors
+app.use((err, req, res, next) => {
+  console.error('Express Global Error:', err);
+  res.status(500).json({
+    status: 'error',
+    message: 'Express caught an unhandled error',
+    errorMessage: err.message,
+    stack: err.stack
+  });
+});
