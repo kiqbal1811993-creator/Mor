@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -5,7 +6,8 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+// Load .env from server/ directory (works locally; on Vercel set vars in dashboard)
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'mor_super_secret_key_2026'; // Please ensure this is set in .env in production
