@@ -6,6 +6,7 @@ import { MessageCircle, Package, LogOut, Plus, Trash2, Upload, ShoppingBag, User
 const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, isSubAdmin, permissions = [] }) => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [addingProduct, setAddingProduct] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -103,6 +104,7 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
 
   const handleSaveEditProduct = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       const cleanedProduct = {
         ...editingProduct,
@@ -127,11 +129,14 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
     } catch (err) {
       console.error('Failed to update product', err);
       alert('Network error: Could not update product.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       const cleanedProduct = {
         ...newProduct,
@@ -164,6 +169,8 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
     } catch (err) {
       console.error('Failed to add product', err);
       alert('Network error: Could not add product.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -536,8 +543,8 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
                 </div>
                 
                 <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', marginTop: isMobile ? '10px' : '20px' }}>
-                  <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center', padding: isMobile ? '10px' : '15px', fontSize: isMobile ? '14px' : '16px' }}>Save</button>
-                  <button type="button" onClick={() => setEditingProduct(null)} className="btn-outline" style={{ flex: 1, justifyContent: 'center', padding: isMobile ? '10px' : '15px', fontSize: isMobile ? '14px' : '16px' }}>Cancel</button>
+                  <button type="submit" disabled={isSaving} className="btn-primary" style={{ flex: 1, justifyContent: 'center', padding: isMobile ? '10px' : '15px', fontSize: isMobile ? '14px' : '16px', opacity: isSaving ? 0.7 : 1 }}>{isSaving ? 'Saving...' : 'Save'}</button>
+                  <button type="button" disabled={isSaving} onClick={() => setEditingProduct(null)} className="btn-outline" style={{ flex: 1, justifyContent: 'center', padding: isMobile ? '10px' : '15px', fontSize: isMobile ? '14px' : '16px', opacity: isSaving ? 0.7 : 1 }}>Cancel</button>
                 </div>
               </form>
             </div>
@@ -638,8 +645,8 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-                  <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center', padding: '15px', fontSize: '16px' }}>Add Product</button>
-                  <button type="button" onClick={() => setAddingProduct(false)} className="btn-outline" style={{ flex: 1, justifyContent: 'center', padding: '15px', fontSize: '16px' }}>Cancel</button>
+                  <button type="submit" disabled={isSaving} className="btn-primary" style={{ flex: 1, justifyContent: 'center', padding: '15px', fontSize: '16px', opacity: isSaving ? 0.7 : 1 }}>{isSaving ? 'Adding...' : 'Add Product'}</button>
+                  <button type="button" disabled={isSaving} onClick={() => setAddingProduct(false)} className="btn-outline" style={{ flex: 1, justifyContent: 'center', padding: '15px', fontSize: '16px', opacity: isSaving ? 0.7 : 1 }}>Cancel</button>
                 </div>
               </form>
             </div>
