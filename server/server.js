@@ -122,6 +122,7 @@ const productSchema = new mongoose.Schema({
   image: { type: String } // For backwards compatibility
 }, { timestamps: true });
 
+productSchema.index({ createdAt: -1 });
 const Product = mongoose.model('Product', productSchema);
 
 // Message Schema & Model
@@ -137,6 +138,8 @@ const messageSchema = new mongoose.Schema({
   read: { type: Boolean, default: false }
 }, { timestamps: true });
 
+messageSchema.index({ sessionId: 1, createdAt: 1 });
+messageSchema.index({ createdAt: -1 });
 const Message = mongoose.model('Message', messageSchema);
 
 // Order Schema & Model
@@ -161,6 +164,7 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: 'Pending', enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] }
 }, { timestamps: true });
 
+orderSchema.index({ createdAt: -1 });
 const Order = mongoose.model('Order', orderSchema);
 
 // Review Schema & Model
@@ -373,10 +377,9 @@ app.get('/api/sub-admin/verify', async (req, res) => {
 // Get all products
 app.get('/api/products', async (req, res) => {
   try {
-    // No CDN caching — always serve fresh data so admin changes reflect immediately
     res.setHeader('Cache-Control', 'no-store');
-    const products = await Product.find().sort({ createdAt: -1 });
-    // Map _id to id for frontend compatibility
+    // Use limit to avoid memory issues on Atlas M0 free tier
+    const products = await Product.find().sort({ createdAt: -1 }).limit(100).lean();
     const formattedProducts = products.map(p => ({
       id: p._id.toString(),
       title: p.title,
