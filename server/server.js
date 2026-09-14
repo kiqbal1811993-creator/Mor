@@ -12,6 +12,9 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'mor_super_secret_key_2026'; // Please ensure this is set in .env in production
 
+// Vercel proxy support (required for rate-limiting to work properly)
+app.set('trust proxy', 1);
+
 // Security Middleware
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -44,24 +47,24 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serverless friendly MongoDB Connection
-let cachedDb = null;
+// Serverless friendly MongoDB Connection
 const connectDB = async () => {
-  if (cachedDb) return cachedDb;
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error('MONGODB_URI is missing. Please set it in Vercel Environment Variables.');
 
-  cachedDb = mongoose.connect(uri, {
+  await mongoose.connect(uri, {
     bufferCommands: false, // Fail fast if not connected
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
-  }).then(m => m);
-  
-  return await cachedDb;
+  });
 };
 
 // Simple ping endpoint to check if API is alive (without DB connection)
 app.get('/api/ping', (req, res) => {
-  res.json({ message: 'pong', env: { hasMongo: !!process.env.MONGODB_URI } });
+  res.json({ message: 'pong', env: { hasMongo: !!process.env.MONGODB_URI }, dbState: mongoose.connection.readyState });
 });
 
 // Endpoint to test database connection and show exact error
