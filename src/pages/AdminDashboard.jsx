@@ -36,13 +36,17 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
       navigate(isSubAdmin ? '/admin' : '/super-admin');
       return;
     }
+
+    let intervalId;
+    
     if (!isSubAdmin) {
-      fetchOrdersSilent();
-      intervalRef.current = setInterval(() => fetchOrdersSilent(), 60000); // reduced from 30s to 60s
-      return () => clearInterval(intervalRef.current);
+      if (document.visibilityState === 'visible') fetchOrdersSilent();
+      intervalId = setInterval(() => {
+        if (document.visibilityState === 'visible') fetchOrdersSilent();
+      }, 120000); // increased from 60s to 120s
     } else {
-      // Sub-admin: verify session every 5s
       const checkSession = async () => {
+        if (document.visibilityState !== 'visible') return;
         try {
           const r = await fetch(`${API_URL}/sub-admin/verify`, {
             headers: { Authorization: 'Bearer ' + adminToken }
@@ -58,9 +62,22 @@ const AdminDashboard = ({ adminToken, setAdminToken, products, fetchProducts, is
         } catch {}
       };
       checkSession();
-      intervalRef.current = setInterval(checkSession, 120000); // reduced from 60s to 120s
-      return () => clearInterval(intervalRef.current);
+      intervalId = setInterval(checkSession, 120000);
     }
+    
+    intervalRef.current = intervalId;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        if (!isSubAdmin) fetchOrdersSilent();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [adminToken, navigate, isSubAdmin]);
 
   const fetchOrdersSilent = async () => {

@@ -57,13 +57,28 @@ const HelplineChat = () => {
 
   useEffect(() => {
     const fetchAndMarkRead = async () => {
-      await fetchMessages();
-      fetch(`${API_URL}/chat/sessions/${sessionId}/read-customer`, { method: 'PUT' });
+      if (document.visibilityState === 'visible') {
+        await fetchMessages();
+        fetch(`${API_URL}/chat/sessions/${sessionId}/read-customer`, { method: 'PUT' });
+      }
     };
 
-    fetchAndMarkRead();
-    const interval = setInterval(fetchAndMarkRead, 15000); // reduced from 5s to 15s
-    return () => clearInterval(interval);
+    if (document.visibilityState === 'visible') {
+      fetchAndMarkRead();
+    }
+    const interval = setInterval(fetchAndMarkRead, 30000); // increased from 15s to 30s
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAndMarkRead();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [sessionId]);
 
   const handleSendMessage = async (e) => {

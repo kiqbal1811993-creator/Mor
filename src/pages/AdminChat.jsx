@@ -110,9 +110,22 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
 
   useEffect(() => {
     if (adminToken) {
-      fetchSessions();
-      const interval = setInterval(fetchSessions, 30000); // reduced from 10s to 30s
-      return () => clearInterval(interval);
+      if (document.visibilityState === 'visible') fetchSessions();
+      const interval = setInterval(() => {
+        if (document.visibilityState === 'visible') fetchSessions();
+      }, 60000); // increased from 30s to 60s
+      
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          fetchSessions();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [adminToken]);
 
@@ -120,17 +133,32 @@ const AdminChat = ({ adminToken, isSubAdmin, permissions = [] }) => {
     if (selectedSessionId) {
       setMessages([]); // clear old messages when switching session
       const fetchAndMarkRead = async (silent) => {
-        await fetchMessages(selectedSessionId, silent);
-        // Mark as read
-        fetch(`${API_URL}/chat/sessions/${selectedSessionId}/read`, {
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${adminToken}` }
-        }).then(() => fetchSessions());
+        if (document.visibilityState === 'visible') {
+          await fetchMessages(selectedSessionId, silent);
+          // Mark as read
+          fetch(`${API_URL}/chat/sessions/${selectedSessionId}/read`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${adminToken}` }
+          }).then(() => fetchSessions());
+        }
       };
 
-      fetchAndMarkRead(false);
-      const interval = setInterval(() => fetchAndMarkRead(true), 15000); // reduced from 5s to 15s
-      return () => clearInterval(interval);
+      if (document.visibilityState === 'visible') {
+        fetchAndMarkRead(false);
+      }
+      const interval = setInterval(() => fetchAndMarkRead(true), 30000); // increased from 15s to 30s
+      
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          fetchAndMarkRead(true);
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [selectedSessionId, adminToken]);
 
