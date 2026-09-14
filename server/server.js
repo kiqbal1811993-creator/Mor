@@ -44,14 +44,13 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serverless friendly MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI;
 let cachedDb = null;
-
 const connectDB = async () => {
   if (cachedDb) return cachedDb;
-  if (!MONGODB_URI) throw new Error('MONGODB_URI is missing.');
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('MONGODB_URI is missing. Please set it in Vercel Environment Variables.');
 
-  cachedDb = mongoose.connect(MONGODB_URI, {
+  cachedDb = mongoose.connect(uri, {
     bufferCommands: false, // Fail fast if not connected
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
@@ -59,6 +58,11 @@ const connectDB = async () => {
   
   return await cachedDb;
 };
+
+// Simple ping endpoint to check if API is alive (without DB connection)
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'pong', env: { hasMongo: !!process.env.MONGODB_URI } });
+});
 
 // Middleware to ensure DB connection on every request
 app.use(async (req, res, next) => {
